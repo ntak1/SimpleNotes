@@ -6,6 +6,7 @@ export const STRINGS = {
     LIST_NOTES: "List  Notes",
     EDIT: "Edit",
     UNTITLED: "Untitled",
+    BACK: "Back",
 }
 
 export const CLASS = {
