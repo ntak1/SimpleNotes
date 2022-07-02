@@ -4,7 +4,7 @@
   "description": "An extension for simple note taking in markdown with online backup functionatily",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
@@ -28,6 +28,7 @@
     "@types/react": "^18.0.14",
     "@types/react-dom": "^18.0.5",
     "copy-webpack-plugin": "^9.1.0",
+    "css-loader": "^6.7.1",
     "nodemon": "^2.0.16",
     "ts-loader": "^9.3.0",
     "ts-node": "^10.8.1",
@@ -37,6 +38,8 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-markdown": "^8.0.3",
+    "style-loader": "^3.3.1"
   }
 }

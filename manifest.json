@@ -10,7 +10,7 @@
             "js": [
                 "dist/content.js"
             ],
-            "type": "module"
+            "type": "commonjs"
         }
     ],
     "icons": {

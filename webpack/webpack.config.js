@@ -4,7 +4,8 @@ module.exports = {
     mode: "production",
     entry: {
         background: path.resolve(__dirname, "..", "src", "background.ts"),
-        content: path.resolve(__dirname, "..", "src", "content.tsx")
+        index: path.resolve(__dirname, "..", "src", "index.tsx"),
+        content: path.resolve(__dirname, "..", "src", "content.tsx"),
     },
     output: {
         path: path.join(__dirname, "../dist"),
@@ -17,8 +18,12 @@ module.exports = {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: "ts-loader",
                 exclude: /node_modules/,
+                use: ["ts-loader"],
+            },
+            {
+                test: /\.css$/i,
+                use: ["style-loader", "css-loader"],
             },
         ],
     },
