@@ -1,16 +1,32 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown'
 import { CLASS, STRINGS } from './constant';
 import "./style.css";
 
-interface LoginProps {
-    onLogin: () => void
+
+const defaultAppState: AppState = {
+    logginCompleted: false,
+    shouldListNotes: false,
+    notes: [],
 }
 
-const LoginWindow: React.FC<LoginProps> = (props: LoginProps) => {
+interface AppContextType {
+    appState: typeof defaultAppState,
+    setAppState: React.Dispatch<React.SetStateAction<AppState>>
+}
+const AppContext = React.createContext<Partial<AppContextType>>({});
+
+
+const LoginWindow: React.FC = () => {
+    const { setAppState } = useContext(AppContext);
     const onLogin = () => {
-        props.onLogin();
+        if (setAppState !== undefined) {
+            setAppState((oldState) => ({
+                ...oldState,
+                logginCompleted: true
+            }))
+        }
     }
     return <div>
         <h1>{STRINGS.APP_NAME}</h1>
@@ -19,52 +35,69 @@ const LoginWindow: React.FC<LoginProps> = (props: LoginProps) => {
     </div>
 }
 
+
 const Title: React.FC = () => {
     return <div className={CLASS.TITLE}>
         <h1>{STRINGS.APP_NAME}</h1>
     </div>
 }
 
+
+
 interface Note {
+    id: number;
     title: string;
     body?: string;
 }
 
 const NoteListElement: React.FC<Note> = (props: Note) => {
+    const { appState, setAppState } = useContext(AppContext);
+    const onDelete = () => {
+        if (setAppState !== undefined) {
+            let updatedNotesList = appState?.notes || [];
+            updatedNotesList = updatedNotesList.filter((note) => note.id !== props.id);
+            setAppState((oldState) => (
+                { ...oldState, notes: updatedNotesList }
+            ));
+        }
+    }
     return <div>
         <p>{props.title}</p>
         <button>{STRINGS.EDIT}</button>
+        <button onClick={onDelete}>{STRINGS.DELETE}</button>
     </div>
 }
 
-
-interface NotesProps {
-    notes: Array<Note>;
-    onAddNotes: Function;
-    onToggleListNotes: () => void;
-}
-
-const NotesWindow = (props: NotesProps) => {
-    const listNotes = (props: NotesProps) => {
-        return props.notes.map((elem) => { return <NoteListElement title={elem.title}></NoteListElement> })
+const NotesWindow = () => {
+    const { appState, setAppState } = useContext(AppContext);
+    const listNotes = () => {
+        let notes: Note[] = [];
+        if (appState != undefined) {
+            notes = [...(appState?.notes)]
+        }
+        return notes.map((elem) => { return <NoteListElement title={elem.title} id={elem.id}></NoteListElement> })
     }
+    const onToggleListNotes = () => {
+        if (setAppState !== undefined) {
+            setAppState(
+                (oldElem) => ({ ...oldElem, shouldListNotes: !oldElem.shouldListNotes })
+            );
+        }
+    }
+
     return <div>
         <Title />
-        <button onClick={props.onToggleListNotes}>{STRINGS.BACK}</button>
+        <button onClick={onToggleListNotes}>{STRINGS.BACK}</button>
         <ul>
-            <li>{listNotes(props)}</li>
+            <li>{listNotes()}</li>
         </ul>
     </div>
 }
 
-interface MainWindowProps {
-    onLogin: Function;
-    onSaveNotes: (note: Note) => void;
-    onToggleListNotes: () => void;
-}
 
-const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
+const MainWindow: React.FC = () => {
     const [markdownText, setMarkdownText] = React.useState("");
+    const { setAppState } = useContext(AppContext);
 
     const onSave = () => {
         const previewElements = document.querySelector(`div.${CLASS.PREVIEW}`);
@@ -75,15 +108,24 @@ const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
 
         console.log(title);
         console.log(bodyContent);
-        props.onSaveNotes({
-            title: title,
-            body: bodyContent
-        });
+        if (setAppState !== undefined) {
+            setAppState((oldState) => ({
+                ...oldState,
+                notes: [...(oldState.notes), {
+                    title: title, body: bodyContent,
+                    id: oldState.notes.length + 1
+                }]
+            }))
+        }
     };
 
-    const onList = () => {
-        props.onToggleListNotes();
-    };
+    const onToggleListNotes = () => {
+        if (setAppState !== undefined) {
+            setAppState(
+                (oldElem) => ({ ...oldElem, shouldListNotes: !oldElem.shouldListNotes })
+            );
+        }
+    }
 
     const onChangeText = (event: { target: { value: React.SetStateAction<string>; }; }) => {
         setMarkdownText(event.target.value);
@@ -92,47 +134,34 @@ const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
     return <div>
         <Title />
         <button onClick={onSave}>{STRINGS.SAVE}</button>
-        <button onClick={onList}>{STRINGS.LIST_NOTES}</button>
+        <button onClick={onToggleListNotes}>{STRINGS.LIST_NOTES}</button>
         <textarea id="main-text-entry" onChange={onChangeText}></textarea>
         <ReactMarkdown className={CLASS.PREVIEW}>{markdownText}</ReactMarkdown>
     </div>;
 }
 
-interface AppProps {
+interface AppState {
     logginCompleted: boolean;
     shouldListNotes: boolean;
+    notes: Note[];
 };
 
+
 const App = () => {
-    const [stateProps, setStateProps] = React.useState<AppProps>({
-        logginCompleted: false,
-        shouldListNotes: false
-    });
-    const [notes, setNotes] = React.useState<Note[]>([]);
-
-    const onLogin = () => {
-        setStateProps((oldProps) => ({ ...oldProps, logginCompleted: true }));
+    const [appState, setAppState] = React.useState<AppState>(defaultAppState);
+    let component;
+    if (appState.logginCompleted && appState.shouldListNotes) {
+        component = <NotesWindow />
     }
-    console.log(stateProps.logginCompleted);
-
-    const onAddNotes = (note: Note) => {
-        setNotes((oldNotes) => [...oldNotes, note]);
+    else if (appState.logginCompleted) {
+        component = <MainWindow />
     }
-
-    const onToggleListNotes = () => {
-        setStateProps(
-            (oldElem) => ({...oldElem, shouldListNotes: !oldElem.shouldListNotes})
-        );
+    else {
+        component = <LoginWindow />
     }
-
-    if (stateProps.logginCompleted && stateProps.shouldListNotes) {
-        return <NotesWindow notes={notes} onAddNotes={onAddNotes} onToggleListNotes={onToggleListNotes}/>
-    }
-    if (stateProps.logginCompleted) {
-        return <MainWindow onLogin={onLogin} onSaveNotes={onAddNotes} onToggleListNotes={onToggleListNotes}/>;
-    }
-    return <LoginWindow onLogin={onLogin} />;
+    return <AppContext.Provider value={{ appState, setAppState }}>{component}</AppContext.Provider>;
 }
+
 
 ReactDOM.render(
     <React.StrictMode><App /></React.StrictMode>, document.getElementById("root")

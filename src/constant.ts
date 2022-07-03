@@ -7,6 +7,7 @@ export const STRINGS = {
     EDIT: "Edit",
     UNTITLED: "Untitled",
     BACK: "Back",
+    DELETE: "Delete",
 }
 
 export const CLASS = {
