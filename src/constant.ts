@@ -8,9 +8,11 @@ export const STRINGS = {
     UNTITLED: "Untitled",
     BACK: "Back",
     DELETE: "Delete",
+    LOGOUT: "Logout",
 }
 
 export const CLASS = {
     TITLE: "title",
     PREVIEW: "markdownPreview",
+    NOTES_LIST: "notesList",
 }

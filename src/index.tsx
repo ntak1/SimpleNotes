@@ -4,7 +4,6 @@ import ReactMarkdown from 'react-markdown'
 import { CLASS, STRINGS } from './constant';
 import "./style.css";
 
-
 const defaultAppState: AppState = {
     logginCompleted: false,
     shouldListNotes: false,
@@ -29,12 +28,14 @@ const LoginWindow: React.FC = () => {
         }
     }
     return <div>
-        <h1>{STRINGS.APP_NAME}</h1>
+        <div>
+            <img src={"./icons8-notes-128.png"} />
+        </div>
+        <Title />
         <button onClick={onLogin}>{STRINGS.LOGIN}</button>
         <button>{STRINGS.SIGN_IN}</button>
     </div>
 }
-
 
 const Title: React.FC = () => {
     return <div className={CLASS.TITLE}>
@@ -42,7 +43,12 @@ const Title: React.FC = () => {
     </div>
 }
 
-
+const TitleWithIcon: React.FC = () => {
+    return <div className={CLASS.TITLE}>
+        <img src={"./icons8-notes-32.png"} />
+        <h1>{STRINGS.APP_NAME}</h1>
+    </div>
+}
 
 interface Note {
     id: number;
@@ -61,11 +67,11 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
             ));
         }
     }
-    return <div>
+    return <li>
         <p>{props.title}</p>
         <button>{STRINGS.EDIT}</button>
         <button onClick={onDelete}>{STRINGS.DELETE}</button>
-    </div>
+    </li>
 }
 
 const NotesWindow = () => {
@@ -85,12 +91,14 @@ const NotesWindow = () => {
         }
     }
 
-    return <div>
-        <Title />
+    return <div style={{ top: "30px", position: "absolute", left: "20px" }}>
         <button onClick={onToggleListNotes}>{STRINGS.BACK}</button>
-        <ul>
-            <li>{listNotes()}</li>
-        </ul>
+        <br></br>
+        <div className={CLASS.NOTES_LIST}>
+            <ul>
+                {listNotes()}
+            </ul>
+        </div>
     </div>
 }
 
@@ -131,10 +139,19 @@ const MainWindow: React.FC = () => {
         setMarkdownText(event.target.value);
     };
 
+    const onLogout = () => {
+        if (setAppState !== undefined) {
+            setAppState(
+                (oldElem) => ({ ...oldElem, logginCompleted: false })
+            )
+        }
+    }
+
     return <div>
-        <Title />
+        <TitleWithIcon />
         <button onClick={onSave}>{STRINGS.SAVE}</button>
         <button onClick={onToggleListNotes}>{STRINGS.LIST_NOTES}</button>
+        <button onClick={onLogout}>{STRINGS.LOGOUT}</button>
         <textarea id="main-text-entry" onChange={onChangeText}></textarea>
         <ReactMarkdown className={CLASS.PREVIEW}>{markdownText}</ReactMarkdown>
     </div>;

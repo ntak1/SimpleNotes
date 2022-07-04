@@ -1,15 +1,14 @@
 body {
     background: white;
     box-sizing: border-box;
-    border: 1.5px solid #000000;
+    border: 2.0px solid #000000;
     border-radius: 5px;
-    padding: 10px;
+    padding: 15px;
     width: 350px;
-    min-height: 400px;
+    height: 420px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 5px;
 }
 
 button {
@@ -17,31 +16,66 @@ button {
     box-shadow: 0px 10px 57px rgba(0, 0, 0, 0.25);
     border-radius: 20px;
     color: white;
-    margin: 10px;
-    font-family: 'monospace', 'Roboto';
+    margin: 5px;
+    font-family: 'monospace', 'Courier', 'Roboto';
 }
 
 .markdownPreview {
     box-sizing: border-box;
-    border: 1.5px solid #000000;
-    border-radius: 16.4365px;
+    border: 2.0px solid #474747;
+    border-radius: 10px;
     padding: 5px;
-    width: 340px;
-    min-height: 150px;
+    width: 320px;
+    height: 145px;
     margin: 5px;
-}
-
-.title {
-    width: 340px;
-    margin: 5px;
+    overflow: scroll;
+    overflow-x: hidden;
 }
 
 textarea {
     box-sizing: border-box;
-    border: 1.01679px solid #000000;
-    border-radius: 16.4365px;
+    border: 2.0px solid #474747;
+    border-radius: 10px;
     padding: 5px;
-    width: 340px;
-    min-height: 150px;
+    width: 320px;
+    height: 140px;
     margin: 5px;
+}
+
+.notesList {
+    overflow: scroll;
+    overflow-x: hidden;
+    max-height: 350px;
+    width: 320px;
+}
+
+.title {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+    border-radius: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    border-radius: 10px;
 }
