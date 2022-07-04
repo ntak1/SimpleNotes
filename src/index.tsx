@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown'
 import { CLASS, STRINGS } from './constant';
@@ -7,6 +7,7 @@ import "./style.css";
 const defaultAppState: AppState = {
     logginCompleted: false,
     shouldListNotes: false,
+    shouldEditNote: undefined,
     notes: [],
 }
 
@@ -67,9 +68,25 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
             ));
         }
     }
+    const onEdit = () => {
+        let notes = appState?.notes || [];
+        const selectedNoteBody = props.body || "";
+        notes.push({ title: props.title, body: selectedNoteBody, id: props.id });
+        if (setAppState !== undefined) {
+            setAppState(
+                (oldState) => ({
+                    ...oldState,
+                    shouldListNotes: false,
+                    notes: notes,
+                    shouldEditNote: props.id,
+                })
+            )
+        }
+    }
+
     return <li>
         <p>{props.title}</p>
-        <button>{STRINGS.EDIT}</button>
+        <button onClick={onEdit}>{STRINGS.EDIT}</button>
         <button onClick={onDelete}>{STRINGS.DELETE}</button>
     </li>
 }
@@ -103,9 +120,13 @@ const NotesWindow = () => {
 }
 
 
-const MainWindow: React.FC = () => {
+interface MainWindowProps {
+    note?: Note;
+}
+
+const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
     const [markdownText, setMarkdownText] = React.useState("");
-    const { setAppState } = useContext(AppContext);
+    const { appState, setAppState } = useContext(AppContext);
 
     const onSave = () => {
         const previewElements = document.querySelector(`div.${CLASS.PREVIEW}`);
@@ -147,12 +168,29 @@ const MainWindow: React.FC = () => {
         }
     }
 
+    const inputTextEntry = () => {
+        if (appState?.shouldEditNote !== undefined) {
+            const selectedNote = appState.notes.find((e) => e.id == appState.shouldEditNote);
+            if (setAppState !== undefined) {
+                setAppState((oldState) => ({
+                    ...oldState,
+                    shouldEditNote: undefined
+                }))
+            }
+            if (selectedNote !== undefined) {
+                console.log("Should log console", selectedNote.body);
+                return <textarea id="main-text-entry" onChange={onChangeText} value={selectedNote.body || ""}></textarea>
+            }
+        }
+        return <textarea id="main-text-entry" onChange={onChangeText}></textarea>
+    }
+
     return <div>
         <TitleWithIcon />
         <button onClick={onSave}>{STRINGS.SAVE}</button>
         <button onClick={onToggleListNotes}>{STRINGS.LIST_NOTES}</button>
         <button onClick={onLogout}>{STRINGS.LOGOUT}</button>
-        <textarea id="main-text-entry" onChange={onChangeText}></textarea>
+        {inputTextEntry()}
         <ReactMarkdown className={CLASS.PREVIEW}>{markdownText}</ReactMarkdown>
     </div>;
 }
@@ -161,6 +199,7 @@ interface AppState {
     logginCompleted: boolean;
     shouldListNotes: boolean;
     notes: Note[];
+    shouldEditNote: number | undefined;
 };
 
 
