@@ -1,14 +1,17 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown'
 import { CLASS, STRINGS } from './constant';
 import "./style.css";
+import { v4 as uuidv4 } from 'uuid';
+
 
 const defaultAppState: AppState = {
     logginCompleted: false,
     shouldListNotes: false,
-    shouldEditNote: undefined,
-    notes: [],
+    shouldEditNote: false,
+    notes: {},
+    shouldUpdateNode: false,
 }
 
 interface AppContextType {
@@ -52,7 +55,7 @@ const TitleWithIcon: React.FC = () => {
 }
 
 interface Note {
-    id: number;
+    id: string;
     title: string;
     body?: string;
 }
@@ -61,24 +64,32 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
     const { appState, setAppState } = useContext(AppContext);
     const onDelete = () => {
         if (setAppState !== undefined) {
-            let updatedNotesList = appState?.notes || [];
-            updatedNotesList = updatedNotesList.filter((note) => note.id !== props.id);
-            setAppState((oldState) => (
-                { ...oldState, notes: updatedNotesList }
-            ));
+            setAppState((oldState) => {
+                const updatedNotes = oldState.notes;
+                delete updatedNotes[props.id as string];
+                return {
+                    ...oldState,
+                    notes: updatedNotes
+                }
+            })
         }
     }
     const onEdit = () => {
-        let notes = appState?.notes || [];
-        const selectedNoteBody = props.body || "";
-        notes.push({ title: props.title, body: selectedNoteBody, id: props.id });
+        let notes = appState?.notes || {};
+        notes[props.id] = {
+            title: props.title,
+            id: props.id,
+            body: props.body
+        }
+        console.log("props.body:", props.body)
         if (setAppState !== undefined) {
             setAppState(
                 (oldState) => ({
                     ...oldState,
                     shouldListNotes: false,
                     notes: notes,
-                    shouldEditNote: props.id,
+                    shouldEditNote: true,
+                    noteToBeEdited: props.id
                 })
             )
         }
@@ -94,11 +105,10 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
 const NotesWindow = () => {
     const { appState, setAppState } = useContext(AppContext);
     const listNotes = () => {
-        let notes: Note[] = [];
-        if (appState != undefined) {
-            notes = [...(appState?.notes)]
-        }
-        return notes.map((elem) => { return <NoteListElement title={elem.title} id={elem.id}></NoteListElement> })
+        const notes: Note[] = [];
+        if (appState?.notes !== undefined)
+            Object.entries(appState?.notes).forEach(([key, value]) => notes.push(value));
+        return notes.map((elem) => { return <NoteListElement title={elem.title} id={elem.id} body={elem.body}></NoteListElement> })
     }
     const onToggleListNotes = () => {
         if (setAppState !== undefined) {
@@ -120,11 +130,7 @@ const NotesWindow = () => {
 }
 
 
-interface MainWindowProps {
-    note?: Note;
-}
-
-const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
+const MainWindow: React.FC = () => {
     const [markdownText, setMarkdownText] = React.useState("");
     const { appState, setAppState } = useContext(AppContext);
 
@@ -134,17 +140,30 @@ const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
 
         const body = document.querySelector(`#main-text-entry`) as HTMLTextAreaElement;
         const bodyContent = body.value;
+        console.log("body value:", bodyContent);
 
-        console.log(title);
-        console.log(bodyContent);
         if (setAppState !== undefined) {
-            setAppState((oldState) => ({
-                ...oldState,
-                notes: [...(oldState.notes), {
-                    title: title, body: bodyContent,
-                    id: oldState.notes.length + 1
-                }]
-            }))
+            let id: string;
+            if (appState?.shouldUpdateNode === true) {
+                id = appState.noteToBeEdited as string;
+                console.log("saving existing id");
+            } else {
+                id = uuidv4();
+            }
+
+            setAppState((oldState) => {
+                const updatedState = oldState;
+                updatedState.notes[id] = {
+                    id: id,
+                    title: title,
+                    body: bodyContent
+                }
+                return {
+                    ...updatedState,
+                    shouldEditNote: false,
+                    shouldUpdateNode: false
+                }
+            })
         }
     };
 
@@ -169,16 +188,14 @@ const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
     }
 
     const inputTextEntry = () => {
-        if (appState?.shouldEditNote !== undefined) {
-            const selectedNote = appState.notes.find((e) => e.id == appState.shouldEditNote);
+        console.log("shouldEditNote", appState?.shouldEditNote);
+        if (appState?.shouldEditNote === true) {
+            const selectedNote = appState.notes[appState.noteToBeEdited as string];
+            console.log(selectedNote);
             if (setAppState !== undefined) {
-                setAppState((oldState) => ({
-                    ...oldState,
-                    shouldEditNote: undefined
-                }))
+                setAppState((oldState) => ({ ...oldState, shouldEditNote: false, shouldUpdateNode: true }))
             }
             if (selectedNote !== undefined) {
-                console.log("Should log console", selectedNote.body);
                 return <textarea id="main-text-entry" onChange={onChangeText} value={selectedNote.body || ""}></textarea>
             }
         }
@@ -192,14 +209,20 @@ const MainWindow: React.FC<MainWindowProps> = (props: MainWindowProps) => {
         <button onClick={onLogout}>{STRINGS.LOGOUT}</button>
         {inputTextEntry()}
         <ReactMarkdown className={CLASS.PREVIEW}>{markdownText}</ReactMarkdown>
-    </div>;
+    </div>
+}
+
+interface HashTable<T> {
+    [key: string]: T;
 }
 
 interface AppState {
     logginCompleted: boolean;
     shouldListNotes: boolean;
-    notes: Note[];
-    shouldEditNote: number | undefined;
+    notes: HashTable<Note>;
+    shouldEditNote: boolean;
+    shouldUpdateNode: boolean;
+    noteToBeEdited?: string;
 };
 
 
