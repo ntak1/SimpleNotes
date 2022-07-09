@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown'
-import { CLASS, STRINGS } from './constant';
+import { CLASS, STORAGE_KEY, STRINGS } from './constant';
 import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -24,9 +24,15 @@ const AppContext = React.createContext<Partial<AppContextType>>({});
 const LoginWindow: React.FC = () => {
     const { setAppState } = useContext(AppContext);
     const onLogin = () => {
+        const previouslySavedNotesStr = localStorage.getItem(STORAGE_KEY.notes);
+        let previouslySavedNotes: HashTable<Note> = {};
+        if (previouslySavedNotesStr !== null) {
+            previouslySavedNotes = JSON.parse(previouslySavedNotesStr);
+        }
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
+                notes: previouslySavedNotes,
                 logginCompleted: true
             }))
         }
@@ -67,6 +73,7 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
             setAppState((oldState) => {
                 const updatedNotes = oldState.notes;
                 delete updatedNotes[props.id as string];
+                localStorage.setItem(STORAGE_KEY.notes, JSON.stringify(updatedNotes));
                 return {
                     ...oldState,
                     notes: updatedNotes
@@ -164,6 +171,7 @@ const MainWindow: React.FC = () => {
                     shouldUpdateNode: false
                 }
             })
+            localStorage.setItem(STORAGE_KEY.notes, JSON.stringify(appState?.notes));
         }
     };
 
@@ -180,6 +188,7 @@ const MainWindow: React.FC = () => {
     };
 
     const onLogout = () => {
+        localStorage.clear();
         if (setAppState !== undefined) {
             setAppState(
                 (oldElem) => ({ ...oldElem, logginCompleted: false })

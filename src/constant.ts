@@ -16,3 +16,7 @@ export const CLASS = {
     PREVIEW: "markdownPreview",
     NOTES_LIST: "notesList",
 }
+
+export const STORAGE_KEY = {
+    notes: "NOTES_KEY"
+}
