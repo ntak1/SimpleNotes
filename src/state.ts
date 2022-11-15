@@ -2,7 +2,7 @@ import React from "react";
 import { AppContextType, AppState } from "./types";
 
 export const defaultAppState: AppState = {
-    logginCompleted: false,
+    logginState: "notLogged",
     shouldListNotes: false,
     shouldEditNote: false,
     notes: {},

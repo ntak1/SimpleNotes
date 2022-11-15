@@ -1,6 +1,6 @@
 export const STRINGS = {
     APP_NAME: "Simple Notes",
-    SIGN_IN: "Sign Up",
+    SIGN_UP: "Sign Up",
     LOGIN: "Login",
     SAVE: "Save",
     LIST_NOTES: "List  Notes",
@@ -9,12 +9,14 @@ export const STRINGS = {
     BACK: "Back",
     DELETE: "Delete",
     LOGOUT: "Logout",
+    SIGN_UP_FAILED: "Sign up failed",
 }
 
 export const CLASS = {
     TITLE: "title",
     PREVIEW: "markdownPreview",
     NOTES_LIST: "notesList",
+    ERROR: "error",
 }
 
 export const STORAGE_KEY = {

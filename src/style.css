@@ -56,6 +56,10 @@ textarea {
     justify-content: center;
 }
 
+.error {
+    color: red;
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: 10px;

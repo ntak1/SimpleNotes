@@ -4,12 +4,10 @@ import ReactMarkdown from 'react-markdown'
 import { CLASS, STORAGE_KEY, STRINGS } from './constant';
 import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
-import { Auth } from 'aws-amplify';
 import { TitleWithIcon } from './title';
-import { LoginWindow } from './login';
+import { LoginWindow, SignUpWindow } from './login';
 import { AppContext, defaultAppState } from './state';
 import { AppState, Note } from './types';
-
 
 const NoteListElement: React.FC<Note> = (props: Note) => {
     const { appState, setAppState } = useContext(AppContext);
@@ -136,7 +134,7 @@ const MainWindow: React.FC = () => {
         localStorage.clear();
         if (setAppState !== undefined) {
             setAppState(
-                (oldElem: any) => ({ ...oldElem, logginCompleted: false })
+                (oldElem: any) => ({ ...oldElem, logginState: false })
             )
         }
     }
@@ -170,17 +168,20 @@ const MainWindow: React.FC = () => {
 const App = () => {
     const [appState, setAppState] = React.useState<AppState>(defaultAppState);
     let component;
-    if (appState.logginCompleted && appState.shouldListNotes) {
+    if (appState.logginState === "completed" && appState.shouldListNotes) {
         component = <NotesWindow />
     }
-    else if (appState.logginCompleted) {
+    else if (appState.logginState === "completed") {
         component = <MainWindow />
+    }
+    else if (appState.logginState === "ongoing") {
+        component = <SignUpWindow />
     }
     else {
         component = <LoginWindow />
     }
     return <AppContext.Provider value={{ appState, setAppState }}>{component}</AppContext.Provider>;
-    
+
 }
 
 

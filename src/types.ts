@@ -5,8 +5,11 @@ export interface HashTable<T> {
 }
 
 
+export type LoginState = "completed" | "ongoing" | "notLogged";
+
+
 export interface AppState {
-    logginCompleted: boolean;
+    logginState: LoginState;
     shouldListNotes: boolean;
     notes: HashTable<Note>;
     shouldEditNote: boolean;
