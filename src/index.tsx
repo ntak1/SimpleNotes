@@ -4,67 +4,12 @@ import ReactMarkdown from 'react-markdown'
 import { CLASS, STORAGE_KEY, STRINGS } from './constant';
 import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
+import { Auth } from 'aws-amplify';
+import { TitleWithIcon } from './title';
+import { LoginWindow } from './login';
+import { AppContext, defaultAppState } from './state';
+import { AppState, Note } from './types';
 
-
-const defaultAppState: AppState = {
-    logginCompleted: false,
-    shouldListNotes: false,
-    shouldEditNote: false,
-    notes: {},
-    shouldUpdateNode: false,
-}
-
-interface AppContextType {
-    appState: typeof defaultAppState,
-    setAppState: React.Dispatch<React.SetStateAction<AppState>>
-}
-const AppContext = React.createContext<Partial<AppContextType>>({});
-
-
-const LoginWindow: React.FC = () => {
-    const { setAppState } = useContext(AppContext);
-    const onLogin = () => {
-        const previouslySavedNotesStr = localStorage.getItem(STORAGE_KEY.notes);
-        let previouslySavedNotes: HashTable<Note> = {};
-        if (previouslySavedNotesStr !== null) {
-            previouslySavedNotes = JSON.parse(previouslySavedNotesStr);
-        }
-        if (setAppState !== undefined) {
-            setAppState((oldState) => ({
-                ...oldState,
-                notes: previouslySavedNotes,
-                logginCompleted: true
-            }))
-        }
-    }
-    return <div>
-        <div>
-            <img src={"./icons8-notes-128.png"} />
-        </div>
-        <Title />
-        <button onClick={onLogin}>{STRINGS.LOGIN}</button>
-        <button>{STRINGS.SIGN_IN}</button>
-    </div>
-}
-
-const Title: React.FC = () => {
-    return <div className={CLASS.TITLE}>
-        <h1>{STRINGS.APP_NAME}</h1>
-    </div>
-}
-
-const TitleWithIcon: React.FC = () => {
-    return <div className={CLASS.TITLE}>
-        <img src={"./icons8-notes-32.png"} />
-        <h1>{STRINGS.APP_NAME}</h1>
-    </div>
-}
-
-interface Note {
-    id: string;
-    title: string;
-    body?: string;
-}
 
 const NoteListElement: React.FC<Note> = (props: Note) => {
     const { appState, setAppState } = useContext(AppContext);
@@ -91,7 +36,7 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
         console.log("props.body:", props.body)
         if (setAppState !== undefined) {
             setAppState(
-                (oldState) => ({
+                (oldState: any) => ({
                     ...oldState,
                     shouldListNotes: false,
                     notes: notes,
@@ -114,7 +59,7 @@ const NotesWindow = () => {
     const listNotes = () => {
         const notes: Note[] = [];
         if (appState?.notes !== undefined)
-            Object.entries(appState?.notes).forEach(([key, value]) => notes.push(value));
+            Object.entries(appState?.notes).forEach(([key, value]) => notes.push(value as any));
         return notes.map((elem) => { return <NoteListElement title={elem.title} id={elem.id} body={elem.body}></NoteListElement> })
     }
     const onToggleListNotes = () => {
@@ -158,7 +103,7 @@ const MainWindow: React.FC = () => {
                 id = uuidv4();
             }
 
-            setAppState((oldState) => {
+            setAppState((oldState: any) => {
                 const updatedState = oldState;
                 updatedState.notes[id] = {
                     id: id,
@@ -191,7 +136,7 @@ const MainWindow: React.FC = () => {
         localStorage.clear();
         if (setAppState !== undefined) {
             setAppState(
-                (oldElem) => ({ ...oldElem, logginCompleted: false })
+                (oldElem: any) => ({ ...oldElem, logginCompleted: false })
             )
         }
     }
@@ -202,7 +147,7 @@ const MainWindow: React.FC = () => {
             const selectedNote = appState.notes[appState.noteToBeEdited as string];
             console.log(selectedNote);
             if (setAppState !== undefined) {
-                setAppState((oldState) => ({ ...oldState, shouldEditNote: false, shouldUpdateNode: true }))
+                setAppState((oldState: any) => ({ ...oldState, shouldEditNote: false, shouldUpdateNode: true }))
             }
             if (selectedNote !== undefined) {
                 return <textarea id="main-text-entry" onChange={onChangeText} value={selectedNote.body || ""}></textarea>
@@ -221,19 +166,6 @@ const MainWindow: React.FC = () => {
     </div>
 }
 
-interface HashTable<T> {
-    [key: string]: T;
-}
-
-interface AppState {
-    logginCompleted: boolean;
-    shouldListNotes: boolean;
-    notes: HashTable<Note>;
-    shouldEditNote: boolean;
-    shouldUpdateNode: boolean;
-    noteToBeEdited?: string;
-};
-
 
 const App = () => {
     const [appState, setAppState] = React.useState<AppState>(defaultAppState);
@@ -248,6 +180,7 @@ const App = () => {
         component = <LoginWindow />
     }
     return <AppContext.Provider value={{ appState, setAppState }}>{component}</AppContext.Provider>;
+    
 }
 
 

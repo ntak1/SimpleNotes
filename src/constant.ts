@@ -1,6 +1,6 @@
 export const STRINGS = {
     APP_NAME: "Simple Notes",
-    SIGN_IN: "Sign In",
+    SIGN_IN: "Sign Up",
     LOGIN: "Login",
     SAVE: "Save",
     LIST_NOTES: "List  Notes",
