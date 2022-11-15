@@ -5,7 +5,7 @@ import { CLASS, STORAGE_KEY, STRINGS } from './constant';
 import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
 import { TitleWithIcon } from './title';
-import { LoginWindow, SignUpWindow } from './login';
+import { LoginWindow, AuthenticationWindow, ConfirmSignUpCodeWindow } from './login';
 import { AppContext, defaultAppState } from './state';
 import { AppState, Note } from './types';
 
@@ -174,8 +174,12 @@ const App = () => {
     else if (appState.logginState === "completed") {
         component = <MainWindow />
     }
-    else if (appState.logginState === "ongoing") {
-        component = <SignUpWindow />
+    else if (appState.logginState === "signup") {
+        component = <AuthenticationWindow authenticationType={"signup"} />
+    } else if (appState.logginState === "signin") {
+        component = <AuthenticationWindow authenticationType={"signin"} />
+    } else if (appState.logginState === "confirmationCode") {
+        component = <ConfirmSignUpCodeWindow />
     }
     else {
         component = <LoginWindow />

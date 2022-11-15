@@ -3,9 +3,8 @@ import { useContext } from "react";
 import { CLASS, STORAGE_KEY, STRINGS } from "./constant";
 import { AppContext } from "./state";
 import { Title } from "./title";
-import { HashTable, Note } from "./types";
-import { Auth } from "aws-amplify";
-import { Amplify } from 'aws-amplify';
+import { HashTable, LoginState, Note } from "./types";
+import { Amplify, Auth } from "aws-amplify";
 import { CognitoUser } from '@aws-amplify/auth'
 
 Amplify.configure({
@@ -15,7 +14,8 @@ Amplify.configure({
         region: process.env.REACT_APP_COGNITO_REGION,
     }
 });
-Auth.configure();
+const configuration = Auth.configure();
+console.log(configuration);
 
 export const LoginWindow: React.FC = () => {
     const { setAppState } = useContext(AppContext);
@@ -39,7 +39,7 @@ export const LoginWindow: React.FC = () => {
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
-                logginState: "ongoing"
+                logginState: "signup"
             }))
         }
     }
@@ -58,6 +58,7 @@ interface SignUpResult {
     user: CognitoUser,
     userConfirmed: boolean,
     userSub: string,
+    errorMessage?: string
 }
 
 async function singUp(username: string, password: string, email?: string): Promise<SignUpResult | undefined> {
@@ -79,35 +80,16 @@ async function singUp(username: string, password: string, email?: string): Promi
     }
 }
 
-export const SignUpWindow: React.FC = () => {
-    const usernameId = "USER_NAME_INPUT";
-    const emailId = "EMAIL_INPUT";
-    const passwordId = "PASSWORD_INPUT";
-
-    const { setAppState } = useContext(AppContext);
-    const [ signUpStatus, setSignUpStatus ] = React.useState("\n")
-
-    const onSubmit = () => {
-        const username = (document.querySelector(`#${usernameId}`) as HTMLTextAreaElement).value;
-        const email = (document.querySelector(`#${emailId}`) as HTMLTextAreaElement).value;
-        const password = (document.querySelector(`#${passwordId}`) as HTMLTextAreaElement).value;
-        const signUpResult = singUp(username, password, email);
-        signUpResult.then(
-            () => {
-                console.log("Finishing sign up...")
-                if (setAppState !== undefined) {
-                    setAppState((oldState) => ({
-                        ...oldState,
-                        logginState: "completed"
-                    }));
-                }
-            }
-        ).catch((error) => {
-            console.log(STRINGS.SIGN_UP_FAILED, error);
-            setSignUpStatus(STRINGS.SIGN_UP_FAILED);
-        });
+async function signIn(username: string, password: string) {
+    try {
+        const user = await Auth.signIn(username, password);
+    } catch (error) {
+        console.log('error signing in', error);
     }
+}
 
+const LoggoutButton: React.FC = () => {
+    const { setAppState } = useContext(AppContext);
     const onReturn = () => {
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
@@ -117,16 +99,83 @@ export const SignUpWindow: React.FC = () => {
         }
     }
 
+    return <button onClick={onReturn}>{STRINGS.BACK}</button>
+}
+
+interface AuthenticationProps {
+    authenticationType: "signin" | "signup"
+}
+
+export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: AuthenticationProps) => {
+    const emailId = "EMAIL_INPUT";
+    const passwordId = "PASSWORD_INPUT";
+
+    const { setAppState } = useContext(AppContext);
+    const [signUpStatus, setSignUpStatus] = React.useState("\n")
+
+    const getEmailAndPassword = () => {
+        const email = (document.querySelector(`#${emailId}`) as HTMLTextAreaElement).value;
+        const password = (document.querySelector(`#${passwordId}`) as HTMLTextAreaElement).value;
+        return {
+            email: email,
+            password: password
+        }
+    }
+
+    const updateLogginState = (newState: LoginState) => {
+        console.log("Finishing authentication...");
+        if (setAppState !== undefined) {
+            setAppState((oldState) => ({
+                ...oldState,
+                logginState: newState
+            }));
+        }
+    };
+    const onSubmit = () => {
+        const { email, password } = getEmailAndPassword();
+        if (props.authenticationType == "signup") {
+            const signUpResult = singUp(email, password, email);
+            signUpResult
+                .then(() => updateLogginState("confirmationCode"))
+                .catch(
+                    (error) => {
+                        console.log(STRINGS.SIGN_UP_FAILED, error);
+                        setSignUpStatus(`${STRINGS.SIGN_UP_FAILED} ${error}`);
+                    });
+        } else if (props.authenticationType === "signin") {
+            console.log("Handling sign in")
+            const signInResult = signIn(email, password);
+            signInResult
+                .then(() => updateLogginState("completed"))
+                .catch(
+                    (error) => {
+                        console.log(STRINGS.SIGN_UP_FAILED, error);
+                        setSignUpStatus(`${STRINGS.SIGN_UP_FAILED} ${error}`)
+                    }
+                );
+        }
+    }
+
     return <div>
-        <Title/>
-        <p>{STRINGS.USER_NAME}</p>
-        <input id={usernameId}></input>
+        <Title />
         <p>{STRINGS.EMAIL}</p>
         <input id={emailId}></input>
         <p>{STRINGS.PASSWORD}</p>
         <input id={passwordId}></input>
         <p className={CLASS.ERROR}>{signUpStatus}</p>
-        <button onClick={onReturn}>{STRINGS.BACK}</button>
+        <LoggoutButton />
         <button onClick={onSubmit}>{STRINGS.SUBMIT}</button>
+    </div>
+}
+
+
+export const ConfirmSignUpCodeWindow: React.FC = () => {
+    const CONFIRMATION_CODE_ID = "confirmationCode";
+    return <div>
+        <Title />
+        <p>Input the confirmation code from the email</p>
+        <input id={CONFIRMATION_CODE_ID}></input>
+        <button>Submit</button>
+        <LoggoutButton />
     </div>
 }

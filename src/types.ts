@@ -5,7 +5,7 @@ export interface HashTable<T> {
 }
 
 
-export type LoginState = "completed" | "ongoing" | "notLogged";
+export type LoginState = "completed" | "signup" | "confirmationCode" | "signin" | "notLogged";
 
 
 export interface AppState {
