@@ -107,15 +107,26 @@ export const SignUpWindow: React.FC = () => {
             setSignUpStatus(STRINGS.SIGN_UP_FAILED);
         });
     }
+
+    const onReturn = () => {
+        if (setAppState !== undefined) {
+            setAppState((oldState) => ({
+                ...oldState,
+                logginState: "notLogged"
+            }));
+        }
+    }
+
     return <div>
         <Title/>
-        <p>Username</p>
+        <p>{STRINGS.USER_NAME}</p>
         <input id={usernameId}></input>
-        <p>Email</p>
+        <p>{STRINGS.EMAIL}</p>
         <input id={emailId}></input>
-        <p>Password</p>
+        <p>{STRINGS.PASSWORD}</p>
         <input id={passwordId}></input>
         <p className={CLASS.ERROR}>{signUpStatus}</p>
-        <button onClick={onSubmit}>Submit</button>
+        <button onClick={onReturn}>{STRINGS.BACK}</button>
+        <button onClick={onSubmit}>{STRINGS.SUBMIT}</button>
     </div>
 }

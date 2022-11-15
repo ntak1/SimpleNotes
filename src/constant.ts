@@ -10,6 +10,10 @@ export const STRINGS = {
     DELETE: "Delete",
     LOGOUT: "Logout",
     SIGN_UP_FAILED: "Sign up failed",
+    USER_NAME: "Username",
+    EMAIL: "Email",
+    PASSWORD: "Password",
+    SUBMIT: "Submit",
 }
 
 export const CLASS = {
