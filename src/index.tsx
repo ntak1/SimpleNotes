@@ -1,13 +1,12 @@
 import React, { useContext } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown'
-import { CLASS, STORAGE_KEY, STRINGS } from './constant';
+import { CSS_CLASS, STORAGE_KEY, STRINGS } from './constant';
 import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
 import { TitleWithIcon } from './title';
 import { LoginWindow, AuthenticationWindow, ConfirmSignUpCodeWindow } from './login';
-import { AppContext, defaultAppState } from './state';
-import { AppState, Note } from './types';
+import { AppContext, AppState, defaultAppState, Note } from './state';
 
 const NoteListElement: React.FC<Note> = (props: Note) => {
     const { appState, setAppState } = useContext(AppContext);
@@ -71,7 +70,7 @@ const NotesWindow = () => {
     return <div style={{ top: "30px", position: "absolute", left: "20px" }}>
         <button onClick={onToggleListNotes}>{STRINGS.BACK}</button>
         <br></br>
-        <div className={CLASS.NOTES_LIST}>
+        <div className={CSS_CLASS.NOTES_LIST}>
             <ul>
                 {listNotes()}
             </ul>
@@ -85,7 +84,7 @@ const MainWindow: React.FC = () => {
     const { appState, setAppState } = useContext(AppContext);
 
     const onSave = () => {
-        const previewElements = document.querySelector(`div.${CLASS.PREVIEW}`);
+        const previewElements = document.querySelector(`div.${CSS_CLASS.PREVIEW}`);
         const title = previewElements?.textContent?.split("\n")[0] || STRINGS.UNTITLED;
 
         const body = document.querySelector(`#main-text-entry`) as HTMLTextAreaElement;
@@ -134,7 +133,7 @@ const MainWindow: React.FC = () => {
         localStorage.clear();
         if (setAppState !== undefined) {
             setAppState(
-                (oldElem: any) => ({ ...oldElem, logginState: false })
+                (oldElem: any) => ({ ...oldElem, loggingState: false })
             )
         }
     }
@@ -160,7 +159,7 @@ const MainWindow: React.FC = () => {
         <button onClick={onToggleListNotes}>{STRINGS.LIST_NOTES}</button>
         <button onClick={onLogout}>{STRINGS.LOGOUT}</button>
         {inputTextEntry()}
-        <ReactMarkdown className={CLASS.PREVIEW}>{markdownText}</ReactMarkdown>
+        <ReactMarkdown className={CSS_CLASS.PREVIEW}>{markdownText}</ReactMarkdown>
     </div>
 }
 
@@ -168,17 +167,17 @@ const MainWindow: React.FC = () => {
 const App = () => {
     const [appState, setAppState] = React.useState<AppState>(defaultAppState);
     let component;
-    if (appState.logginState === "completed" && appState.shouldListNotes) {
+    if (appState.loggingState === "completed" && appState.shouldListNotes) {
         component = <NotesWindow />
     }
-    else if (appState.logginState === "completed") {
+    else if (appState.loggingState === "completed") {
         component = <MainWindow />
     }
-    else if (appState.logginState === "signup") {
-        component = <AuthenticationWindow authenticationType={"signup"} />
-    } else if (appState.logginState === "signin") {
-        component = <AuthenticationWindow authenticationType={"signin"} />
-    } else if (appState.logginState === "confirmationCode") {
+    else if (appState.loggingState === "signUp") {
+        component = <AuthenticationWindow authenticationType={"signUp"} />
+    } else if (appState.loggingState === "signIn") {
+        component = <AuthenticationWindow authenticationType={"signIn"} />
+    } else if (appState.loggingState === "confirmationCode") {
         component = <ConfirmSignUpCodeWindow />
     }
     else {

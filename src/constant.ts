@@ -17,11 +17,19 @@ export const STRINGS = {
     SUBMIT: "Submit",
 }
 
-export const CLASS = {
+export const MESSAGES = {
+    RESEND_CODE_SUCCESS: "Code sent, verify you email",
+    RESENT_CODE_FAILED: "Failed to resend the code, try again",
+    DEFAULT: "",
+    INVALID_SIGN_UP_CODE: "Invalid Code!"
+}
+
+export const CSS_CLASS = {
     TITLE: "title",
     PREVIEW: "markdownPreview",
     NOTES_LIST: "notesList",
     ERROR: "error",
+    SUCCESS: "success",
 }
 
 export const STORAGE_KEY = {

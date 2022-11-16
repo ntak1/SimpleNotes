@@ -1,9 +1,8 @@
 import React from "react";
 import { useContext } from "react";
-import { CLASS, STORAGE_KEY, STRINGS } from "./constant";
-import { AppContext } from "./state";
+import { CSS_CLASS, MESSAGES, STORAGE_KEY, STRINGS } from "./constant";
+import { AppContext, HashTable, LoginState, Note } from "./state";
 import { Title } from "./title";
-import { HashTable, LoginState, Note } from "./types";
 import { Amplify, Auth } from "aws-amplify";
 import { CognitoUser } from '@aws-amplify/auth'
 
@@ -29,7 +28,7 @@ export const LoginWindow: React.FC = () => {
             setAppState((oldState) => ({
                 ...oldState,
                 notes: previouslySavedNotes,
-                logginState: "completed"
+                loggingState: "completed"
             }))
         }
     }
@@ -39,7 +38,7 @@ export const LoginWindow: React.FC = () => {
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
-                logginState: "signup"
+                loggingState: "signUp"
             }))
         }
     }
@@ -88,13 +87,13 @@ async function signIn(username: string, password: string) {
     }
 }
 
-const LoggoutButton: React.FC = () => {
+const LogoutButton: React.FC = () => {
     const { setAppState } = useContext(AppContext);
     const onReturn = () => {
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
-                logginState: "notLogged"
+                loggingState: "notLogged"
             }));
         }
     }
@@ -103,7 +102,7 @@ const LoggoutButton: React.FC = () => {
 }
 
 interface AuthenticationProps {
-    authenticationType: "signin" | "signup"
+    authenticationType: "signIn" | "signUp"
 }
 
 export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: AuthenticationProps) => {
@@ -122,31 +121,33 @@ export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: Authe
         }
     }
 
-    const updateLogginState = (newState: LoginState) => {
+    const updateLoggingState = (newState: LoginState, userEmail: string) => {
         console.log("Finishing authentication...");
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
-                logginState: newState
+                loggingState: newState,
+                currUserEmail: userEmail
             }));
         }
     };
+
     const onSubmit = () => {
         const { email, password } = getEmailAndPassword();
-        if (props.authenticationType == "signup") {
+        if (props.authenticationType == "signUp") {
             const signUpResult = singUp(email, password, email);
             signUpResult
-                .then(() => updateLogginState("confirmationCode"))
+                .then(() => updateLoggingState("confirmationCode", email))
                 .catch(
                     (error) => {
                         console.log(STRINGS.SIGN_UP_FAILED, error);
                         setSignUpStatus(`${STRINGS.SIGN_UP_FAILED} ${error}`);
                     });
-        } else if (props.authenticationType === "signin") {
+        } else if (props.authenticationType === "signIn") {
             console.log("Handling sign in")
             const signInResult = signIn(email, password);
             signInResult
-                .then(() => updateLogginState("completed"))
+                .then(() => updateLoggingState("completed", email))
                 .catch(
                     (error) => {
                         console.log(STRINGS.SIGN_UP_FAILED, error);
@@ -162,20 +163,73 @@ export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: Authe
         <input id={emailId}></input>
         <p>{STRINGS.PASSWORD}</p>
         <input id={passwordId}></input>
-        <p className={CLASS.ERROR}>{signUpStatus}</p>
-        <LoggoutButton />
+        <p className={CSS_CLASS.ERROR}>{signUpStatus}</p>
+        <LogoutButton />
         <button onClick={onSubmit}>{STRINGS.SUBMIT}</button>
     </div>
 }
 
+async function resendConfirmationCode(email: string) {
+    return await Auth.resendSignUp(email);
+}
+type ConfirmationCodeStatus = "notSent" | "sentSuccessfully" | "failed" | "invalidCode";
+
+async function confirmSignUp(email: string, code: string) {
+    await Auth.confirmSignUp(email, code);
+}
 
 export const ConfirmSignUpCodeWindow: React.FC = () => {
+    const { setAppState, appState } = useContext(AppContext);
+
     const CONFIRMATION_CODE_ID = "confirmationCode";
+    const initialConfirmationCodeStatus: ConfirmationCodeStatus = "notSent";
+    const [resentConfirmationCodeStatus, setResendConfirmationCodeStatus] = React.useState<ConfirmationCodeStatus>(initialConfirmationCodeStatus);
+
+    const messageMap: Map<ConfirmationCodeStatus, string> = new Map<ConfirmationCodeStatus, string>();
+    messageMap.set("failed", MESSAGES.RESENT_CODE_FAILED);
+    messageMap.set("notSent", MESSAGES.DEFAULT);
+    messageMap.set("sentSuccessfully", MESSAGES.RESEND_CODE_SUCCESS);
+    messageMap.set("invalidCode", MESSAGES.INVALID_SIGN_UP_CODE);
+
+    const colorMap = new Map<ConfirmationCodeStatus, string>();
+    colorMap.set("failed", CSS_CLASS.ERROR);
+    colorMap.set("invalidCode", CSS_CLASS.ERROR);
+    colorMap.set("notSent", "");
+    colorMap.set("sentSuccessfully", CSS_CLASS.SUCCESS);
+
+    const onResendCode = () => {
+        const email = (document.querySelector(`#${CONFIRMATION_CODE_ID}`) as HTMLTextAreaElement).value.trim();
+        const response = resendConfirmationCode(email);
+        response.then(() => {setResendConfirmationCodeStatus("sentSuccessfully")})
+                .catch(() => {setResendConfirmationCodeStatus("failed")});
+    }
+
+    const onSubmit = () => {
+        const email = appState?.currUserEmail as string;
+        const code = (document.querySelector(`#${CONFIRMATION_CODE_ID}`) as HTMLTextAreaElement).value.trim();
+        const response = confirmSignUp(email, code);
+        response.then(() => {updateLoggingState("completed", email)})
+                .catch(() => setResendConfirmationCodeStatus("invalidCode"));
+    }
+
+    const updateLoggingState = (newState: LoginState, userEmail: string) => {
+        console.log("Finishing authentication...");
+        if (setAppState !== undefined) {
+            setAppState((oldState) => ({
+                ...oldState,
+                loggingState: newState,
+                currUserEmail: userEmail
+            }));
+        }
+    };
+
     return <div>
         <Title />
         <p>Input the confirmation code from the email</p>
         <input id={CONFIRMATION_CODE_ID}></input>
-        <button>Submit</button>
-        <LoggoutButton />
+        <button onClick={onSubmit}>Submit</button>
+        <button onClick={onResendCode}>Re-send Code</button>
+        <LogoutButton />
+        <p className={colorMap.get(resentConfirmationCodeStatus)}>{messageMap.get(resentConfirmationCodeStatus)}</p>
     </div>
 }
