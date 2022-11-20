@@ -19,18 +19,14 @@ console.log(configuration);
 export const LoginWindow: React.FC = () => {
     const { setAppState } = useContext(AppContext);
     const onLogin = () => {
-        const previouslySavedNotesStr = localStorage.getItem(STORAGE_KEY.notes);
-        let previouslySavedNotes: HashTable<Note> = {};
-        if (previouslySavedNotesStr !== null) {
-            previouslySavedNotes = JSON.parse(previouslySavedNotesStr);
-        }
+        console.log("Should sign in");
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
-                notes: previouslySavedNotes,
-                loggingState: "completed"
+                loggingState: "signIn"
             }))
         }
+
     }
 
     const onSignUp = () => {
@@ -80,16 +76,13 @@ async function singUp(username: string, password: string, email?: string): Promi
 }
 
 async function signIn(username: string, password: string) {
-    try {
-        const user = await Auth.signIn(username, password);
-    } catch (error) {
-        console.log('error signing in', error);
-    }
+    return await Auth.signIn(username, password);
 }
 
 const LogoutButton: React.FC = () => {
     const { setAppState } = useContext(AppContext);
     const onReturn = () => {
+        localStorage.clear();
         if (setAppState !== undefined) {
             setAppState((oldState) => ({
                 ...oldState,
@@ -104,6 +97,7 @@ const LogoutButton: React.FC = () => {
 interface AuthenticationProps {
     authenticationType: "signIn" | "signUp"
 }
+
 
 export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: AuthenticationProps) => {
     const emailId = "EMAIL_INPUT";
@@ -130,7 +124,25 @@ export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: Authe
                 currUserEmail: userEmail
             }));
         }
+        localStorage.setItem(STORAGE_KEY.LOGIN_STATE, newState);
+        localStorage.setItem(STORAGE_KEY.USER_EMAIL, userEmail);
     };
+    
+    const restoreStateAfterLogin = () => {
+        const previouslySavedNotesStr = localStorage.getItem(STORAGE_KEY.NOTES);
+        let previouslySavedNotes: HashTable<Note> = {};
+        if (previouslySavedNotesStr !== null) {
+            previouslySavedNotes = JSON.parse(previouslySavedNotesStr);
+        }
+        if (setAppState !== undefined) {
+            setAppState((oldState) => ({
+                ...oldState,
+                notes: previouslySavedNotes,
+                loggingState: "completed"
+            }))
+        }
+
+    }
 
     const onSubmit = () => {
         const { email, password } = getEmailAndPassword();
@@ -140,14 +152,25 @@ export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: Authe
                 .then(() => updateLoggingState("confirmationCode", email))
                 .catch(
                     (error) => {
+                        if ( "UsernameExistsException")
                         console.log(STRINGS.SIGN_UP_FAILED, error);
-                        setSignUpStatus(`${STRINGS.SIGN_UP_FAILED} ${error}`);
+                        const code = error.code;
+                        switch (code) {
+                            case "UsernameExistsException":
+                                updateLoggingState("confirmationCode", email);
+                            default:
+                                setSignUpStatus(`${STRINGS.SIGN_UP_FAILED} ${error}`);
+                        }
                     });
+
         } else if (props.authenticationType === "signIn") {
             console.log("Handling sign in")
             const signInResult = signIn(email, password);
             signInResult
-                .then(() => updateLoggingState("completed", email))
+                .then(() => {
+                    restoreStateAfterLogin();
+                    updateLoggingState("completed", email);
+                })
                 .catch(
                     (error) => {
                         console.log(STRINGS.SIGN_UP_FAILED, error);
@@ -200,16 +223,32 @@ export const ConfirmSignUpCodeWindow: React.FC = () => {
     const onResendCode = () => {
         const email = (document.querySelector(`#${CONFIRMATION_CODE_ID}`) as HTMLTextAreaElement).value.trim();
         const response = resendConfirmationCode(email);
-        response.then(() => {setResendConfirmationCodeStatus("sentSuccessfully")})
-                .catch(() => {setResendConfirmationCodeStatus("failed")});
+        response.then(() => { setResendConfirmationCodeStatus("sentSuccessfully") })
+            .catch(() => { setResendConfirmationCodeStatus("failed") });
     }
 
     const onSubmit = () => {
-        const email = appState?.currUserEmail as string;
+        let email: string;
+        if (appState?.currUserEmail) {
+            email = appState.currUserEmail;
+        } else {
+            const savedEmail = localStorage.getItem(STORAGE_KEY.USER_EMAIL);
+            if (savedEmail) {
+                email = savedEmail;
+            } else {
+                if (setAppState !== undefined) {
+                    setAppState((oldState) => ({
+                        ...oldState,
+                        loggingState: "notLogged"
+                    }))
+                }
+                return;
+            }
+        }
         const code = (document.querySelector(`#${CONFIRMATION_CODE_ID}`) as HTMLTextAreaElement).value.trim();
         const response = confirmSignUp(email, code);
-        response.then(() => {updateLoggingState("completed", email)})
-                .catch(() => setResendConfirmationCodeStatus("invalidCode"));
+        response.then(() => { updateLoggingState("completed", email) })
+            .catch(() => setResendConfirmationCodeStatus("invalidCode"));
     }
 
     const updateLoggingState = (newState: LoginState, userEmail: string) => {

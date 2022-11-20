@@ -6,7 +6,8 @@ import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
 import { TitleWithIcon } from './title';
 import { LoginWindow, AuthenticationWindow, ConfirmSignUpCodeWindow } from './login';
-import { AppContext, AppState, defaultAppState, Note } from './state';
+import { AppContext, AppState, defaultAppState, LoginState, Note } from './state';
+import { isNullOrUndefined } from '@aws-amplify/datastore/lib-esm/util';
 
 const NoteListElement: React.FC<Note> = (props: Note) => {
     const { appState, setAppState } = useContext(AppContext);
@@ -15,7 +16,7 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
             setAppState((oldState) => {
                 const updatedNotes = oldState.notes;
                 delete updatedNotes[props.id as string];
-                localStorage.setItem(STORAGE_KEY.notes, JSON.stringify(updatedNotes));
+                localStorage.setItem(STORAGE_KEY.NOTES, JSON.stringify(updatedNotes));
                 return {
                     ...oldState,
                     notes: updatedNotes
@@ -43,7 +44,6 @@ const NoteListElement: React.FC<Note> = (props: Note) => {
             )
         }
     }
-
     return <li>
         <p>{props.title}</p>
         <button onClick={onEdit}>{STRINGS.EDIT}</button>
@@ -113,7 +113,7 @@ const MainWindow: React.FC = () => {
                     shouldUpdateNode: false
                 }
             })
-            localStorage.setItem(STORAGE_KEY.notes, JSON.stringify(appState?.notes));
+            localStorage.setItem(STORAGE_KEY.NOTES, JSON.stringify(appState?.notes));
         }
     };
 
@@ -165,7 +165,17 @@ const MainWindow: React.FC = () => {
 
 
 const App = () => {
-    const [appState, setAppState] = React.useState<AppState>(defaultAppState);
+    const defaultInitialLoginState: LoginState = "notLogged";
+    const previouslySavedState = localStorage.getItem(STORAGE_KEY.LOGIN_STATE);
+    let loginState: LoginState;
+    if (isNullOrUndefined(previouslySavedState)) {
+        loginState = defaultInitialLoginState;
+    } else {
+        loginState = previouslySavedState as LoginState;
+    }
+
+    const [appState, setAppState] = React.useState<AppState>({ ...defaultAppState, loggingState: loginState });
+    
     let component;
     if (appState.loggingState === "completed" && appState.shouldListNotes) {
         component = <NotesWindow />

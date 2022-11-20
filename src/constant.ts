@@ -33,5 +33,7 @@ export const CSS_CLASS = {
 }
 
 export const STORAGE_KEY = {
-    notes: "NOTES_KEY"
+    NOTES: "NOTES_KEY",
+    LOGIN_STATE: "LOGGIN_STATE",
+    USER_EMAIL: "USER_EMAIL",
 }
