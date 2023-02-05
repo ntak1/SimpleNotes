@@ -1,27 +1,34 @@
 export const STRINGS = {
     APP_NAME: "Simple Notes",
-    SIGN_UP: "Sign Up",
-    SIGN_IN: "Sign In",
-    LOGIN: "Login",
-    SAVE: "Save",
-    LIST_NOTES: "List  Notes",
-    EDIT: "Edit",
-    UNTITLED: "Untitled",
     BACK: "Back",
+    CONFIRMATION_CODE: "Confirmation code",
+    CONFIRM_PASSWORD: "Confirm password",
     DELETE: "Delete",
-    LOGOUT: "Logout",
-    SIGN_UP_FAILED: "Sign up failed",
-    USER_NAME: "Username",
+    EDIT: "Edit",
     EMAIL: "Email",
+    FORGOT_PASSWORD: "Forgot password",
+    LIST_NOTES: "List  Notes",
+    LOGIN: "Login",
+    LOGOUT: "Logout",
     PASSWORD: "Password",
+    SAVE: "Save",
+    SIGN_IN: "Sign In",
+    SIGN_UP: "Sign Up",
+    SIGN_UP_FAILED: "Sign up failed",
     SUBMIT: "Submit",
+    UNTITLED: "Untitled",
+    USER_NAME: "Username",
 }
 
 export const MESSAGES = {
     RESEND_CODE_SUCCESS: "Code sent, verify you email",
     RESENT_CODE_FAILED: "Failed to resend the code, try again",
     DEFAULT: "",
-    INVALID_SIGN_UP_CODE: "Invalid Code!"
+    INVALID_SIGN_UP_CODE: "Invalid Code!",
+    SUCESS_FORGOT_PASSWORD: "Sucess resetting the password",
+    FAILURE_FORGOT_PASSWORD: "Failure resetting the password",
+    PASSWORD_DOES_NOT_MATCH: "Password does not match. Try again.",
+    EMAIL_IS_EMPTY: "The email field should not be empty",
 }
 
 export const CSS_CLASS = {

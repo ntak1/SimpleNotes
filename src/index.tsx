@@ -5,7 +5,7 @@ import { CSS_CLASS, STORAGE_KEY, STRINGS } from './constant';
 import "./style.css";
 import { v4 as uuidv4 } from 'uuid';
 import { TitleWithIcon } from './title';
-import { LoginWindow, AuthenticationWindow, ConfirmSignUpCodeWindow } from './login';
+import { LoginWindow, AuthenticationWindow, ConfirmSignUpCodeWindow, ForgotPasswordWindow } from './login';
 import { AppContext, AppState, defaultAppState, LoginState, Note } from './state';
 import { isNullOrUndefined } from '@aws-amplify/datastore/lib-esm/util';
 
@@ -189,6 +189,9 @@ const App = () => {
         component = <AuthenticationWindow authenticationType={"signIn"} />
     } else if (appState.loggingState === "confirmationCode") {
         component = <ConfirmSignUpCodeWindow />
+    }
+    else if (appState.loggingState === "forgotPassword") {
+        component = <ForgotPasswordWindow />
     }
     else {
         component = <LoginWindow />

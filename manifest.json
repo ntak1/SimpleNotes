@@ -2,17 +2,6 @@
     "manifest_version": 3,
     "name": "Simple Notes",
     "version": "0.1",
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "dist/content.js"
-            ],
-            "type": "commonjs"
-        }
-    ],
     "icons": {
         "32": "icons/icons8-notes-32.png",
         "16": "icons/icons8-notes-16.png",

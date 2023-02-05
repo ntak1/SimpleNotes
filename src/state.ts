@@ -18,7 +18,7 @@ export const defaultAppState: AppState = {
     shouldUpdateNode: false,
 }
 
-export type LoginState = "completed" | "signUp" | "confirmationCode" | "signIn" | "notLogged";
+export type LoginState = "completed" | "signUp" | "confirmationCode" | "signIn" | "notLogged" | "forgotPassword";
 
 export interface AppState {
     currUserEmail?: string;
