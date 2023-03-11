@@ -167,11 +167,12 @@ const MainWindow: React.FC = () => {
 const App = () => {
     const defaultInitialLoginState: LoginState = "notLogged";
     const previouslySavedState = localStorage.getItem(STORAGE_KEY.LOGIN_STATE);
-    let loginState: LoginState;
+    let loginState: LoginState = defaultInitialLoginState;
     if (isNullOrUndefined(previouslySavedState)) {
         loginState = defaultInitialLoginState;
     } else {
         loginState = previouslySavedState as LoginState;
+        console.log("restored loggin state from storage", loginState)
     }
 
     const [appState, setAppState] = React.useState<AppState>({ ...defaultAppState, loggingState: loginState });
@@ -189,6 +190,7 @@ const App = () => {
         component = <AuthenticationWindow authenticationType={"signIn"} />
     } else if (appState.loggingState === "confirmationCode") {
         component = <ConfirmSignUpCodeWindow />
+        console.log("Confirm sign up window", appState)
     }
     else if (appState.loggingState === "forgotPassword") {
         component = <ForgotPasswordWindow />

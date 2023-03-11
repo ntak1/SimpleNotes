@@ -186,7 +186,7 @@ export const AuthenticationWindow: React.FC<AuthenticationProps> = (props: Authe
         <p>{STRINGS.EMAIL}</p>
         <input id={emailId}></input>
         <p>{STRINGS.PASSWORD}</p>
-        <input id={passwordId}></input>
+        <input id={passwordId} type="password"></input>
         <p className={CSS_CLASS.ERROR}>{signUpStatus}</p>
         <LogoutButton />
         <ForgotPasswordButton />
@@ -365,17 +365,19 @@ export const ForgotPasswordWindow: React.FC = () => {
     }
 
     return <div>
+        <p>{STRINGS.FORGOT_PASSWORD_INSTRUCTIONS}</p>
         <p>{STRINGS.EMAIL}</p>
         <input id={EMAIL_ID}></input>
         <p>{}</p>
         <p>{STRINGS.CONFIRMATION_CODE}</p>
         <input id={CODE_ID}></input>
         <p>{STRINGS.PASSWORD}</p>
-        <input id={NEW_PASSWORD_ID}></input>
+        <input id={NEW_PASSWORD_ID} type="password"></input>
         <p>{STRINGS.CONFIRM_PASSWORD}</p>
-        <input id={CONFIRM_NEW_PASSWORD_ID}></input>
+        <input id={CONFIRM_NEW_PASSWORD_ID} type="password"></input>
         <button onClick={onSubmitForgotPassword}>{STRINGS.SUBMIT}</button>
         <p>{forgotPasswordStatus}</p>
+        <LogoutButton/>
     </div>
 }
 

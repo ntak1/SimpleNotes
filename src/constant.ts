@@ -7,6 +7,7 @@ export const STRINGS = {
     EDIT: "Edit",
     EMAIL: "Email",
     FORGOT_PASSWORD: "Forgot password",
+    FORGOT_PASSWORD_INSTRUCTIONS: "Check your email and fill the form",
     LIST_NOTES: "List  Notes",
     LOGIN: "Login",
     LOGOUT: "Logout",
